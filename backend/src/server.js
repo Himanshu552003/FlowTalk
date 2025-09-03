@@ -11,18 +11,18 @@ app.use(clerkMiddleware())  // req.auth will be available in the req obj
 
 app.use(express.json());
 
-connectDB()
-  .then(()=>{
-    app.listen(ENV.PORT,()=>{
-      console.log(`Server is running on port: ${ENV.PORT}`);
+// connectDB()
+//   .then(()=>{
+//     app.listen(ENV.PORT,()=>{
+//       console.log(`Server is running on port: ${ENV.PORT}`);
       
-    })
-  })
-  .catch((err)=>{
-    console.error("MongoDb connection error", err);
-    process.exit(1)
+//     })
+//   })
+//   .catch((err)=>{
+//     console.error("MongoDb connection error", err);
+//     process.exit(1)
     
-  });
+//   });
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
