@@ -10,9 +10,9 @@ import * as Sentry from "@sentry/node"
 
 
 const app =express()
+app.use(express.json());
 app.use(clerkMiddleware())  // req.auth will be available in the req obj
 
-app.use(express.json());
 
 // connectDB()
 //   .then(()=>{
