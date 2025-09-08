@@ -1,6 +1,6 @@
 import { Inngest } from "inngest";
 import  connectDB  from "./db.js";
-import { User } from "../models/user.js"; // Import the User model
+import { User } from "../models/user.model.js"; // Import the User model
 import { addUserToPublicChannels, deleteStreamUser, upsertStreamUser } from "./stream.js";
 
 // Create a client to send and receive events
@@ -16,22 +16,12 @@ const syncUser = inngest.createFunction(
 
     const newUser = {
       clerkId: id,
-      email: email_addresses?.[0]?.email_address,
+      email: email_addresses[0]?.email_address,
       name: `${first_name || ""} ${last_name || ""}`,
       image: image_url,
     };
 
-    
-
-    console.log("📩 Clerk Event Data:", event.data);
-    console.log("📝 User to Insert:", newUser);
-
-    try {
-      const savedUser = await User.create(newUser);
-      console.log("✅ User saved to MongoDB:", savedUser);
-    } catch (err) {
-      console.error("❌ Error saving user to MongoDB:", err.message);
-    }
+    await User.create(newUser);
 
     await upsertStreamUser({
       id: newUser.clerkId.toString(),

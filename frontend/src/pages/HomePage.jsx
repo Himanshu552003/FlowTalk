@@ -19,7 +19,7 @@ import { HashIcon, PlusIcon, UsersIcon } from "lucide-react";
 import CreateChannelModal from "../components/CreateChannelModal";
 import CustomChannelPreview from "../components/CustomChannelPreview";
 import UsersList from "../components/UsersList";
-import CustomChannelHeader from "../components/CustomChannelHeader";
+import CustomChannelHeader from "../components/components/CustomChannelHeader";
 
 const HomePage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -89,7 +89,7 @@ const HomePage = () => {
                         </div>
                       </div>
 
-                      {/* todos: add better components here instead of just a simple text  */}
+                      
                       {loading && <div className="loading-message">Loading channels...</div>}
                       {error && <div className="error-message">Error loading channels</div>}
 
