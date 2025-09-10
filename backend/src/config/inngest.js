@@ -16,12 +16,17 @@ const syncUser = inngest.createFunction(
 
     const newUser = {
       clerkId: id,
-      email: email_addresses[0]?.email_address,
-      name: `${first_name || ""} ${last_name || ""}`,
-      image: image_url,
+      email: email_addresses?.[0]?.email_address || null,
+      name: `${first_name || ""} ${last_name || ""}`.trim(),
+      image: image_url || null,
     };
 
-    await User.create(newUser);
+    try {
+      const createdUser = await User.create(newUser);
+      console.log("✅ User inserted into Mongo:", createdUser);
+    } catch (err) {
+      console.error("❌ Mongo insert error:", err.message);
+    }
 
     await upsertStreamUser({
       id: newUser.clerkId.toString(),
