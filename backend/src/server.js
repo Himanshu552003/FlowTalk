@@ -2,22 +2,27 @@ import "../instrument.mjs";
 import express from "express";
 import { ENV } from "./config/env.js";
 import connectDB from "./config/db.js";
-import { serve } from "inngest/express";
 import { clerkMiddleware } from "@clerk/express";
-import { functions, inngest } from "./config/inngest.js";
+
+
 import chatRoutes from "./routes/chat.route.js";
 import * as Sentry from "@sentry/node";
 import cors from "cors";
+import { StreamChat } from "stream-chat";
+
+
+Sentry.init({ dsn: ENV.SENTRY_DSN });
+const streamClient = StreamChat.getInstance(ENV.STREAM_API_KEY, ENV.STREAM_API_SECRET);
 
 const app = express();
 
+
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
-app.use(clerkMiddleware()); // req.auth will be available
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 
-// Inngest endpoint (only once, correct form)
-app.use("/api/inngest", serve(inngest, functions));
+// Removed Inngest endpoint (make sure this is reachable by Clerk webhooks)
+// app.use("/api/inngest", serve({ client: inngest, functions }));
 
 // Debug route
 app.get("/debug-sentry", (req, res) => {
@@ -26,11 +31,11 @@ app.get("/debug-sentry", (req, res) => {
 
 // Health check
 app.get("/", (req, res) => {
-  res.send("Hello ");
+  res.send("Hello from FlowTalk backend 🚀");
 });
 
-// Chat API
-app.use("/api/chat", chatRoutes);
+// Chat API (Clerk-protected)
+app.use("/api/chat", clerkMiddleware(), chatRoutes);
 
 // Sentry error handler
 Sentry.setupExpressErrorHandler(app);
@@ -38,14 +43,16 @@ Sentry.setupExpressErrorHandler(app);
 // Start server
 const startServer = async () => {
   try {
+    console.log("🔍 Connecting to MongoDB...");
     await connectDB();
+
     if (ENV.NODE_ENV !== "production") {
       app.listen(ENV.PORT, () => {
-        console.log("Server started on port:", ENV.PORT);
+        console.log(`✅ Server started on http://localhost:${ENV.PORT}`);
       });
     }
   } catch (error) {
-    console.error("Error starting server:", error);
+    console.error("❌ Error starting server:", error);
     process.exit(1);
   }
 };
