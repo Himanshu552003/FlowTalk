@@ -9,7 +9,7 @@ import chatRoutes from "./routes/chat.route.js";
 import * as Sentry from "@sentry/node";
 import cors from "cors";
 
-import { StreamChat } from "stream-chat";
+// import { StreamChat } from "stream-chat";
 
 
 Sentry.init({ dsn: ENV.SENTRY_DSN });
