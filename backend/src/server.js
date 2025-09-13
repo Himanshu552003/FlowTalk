@@ -1,69 +1,46 @@
 import "../instrument.mjs";
 import express from "express";
 import { ENV } from "./config/env.js";
-import connectDB from "./config/db.js";
+import { connectDB } from "./config/db.js";
 import { clerkMiddleware } from "@clerk/express";
-
-
+import { functions, inngest } from "./config/inngest.js";
+import { serve } from "inngest/express";
 import chatRoutes from "./routes/chat.route.js";
-import * as Sentry from "@sentry/node";
+
 import cors from "cors";
 
-// import { StreamChat } from "stream-chat";
-
-
-Sentry.init({ dsn: ENV.SENTRY_DSN });
-// const streamClient = StreamChat.getInstance(ENV.STREAM_API_KEY, ENV.STREAM_API_SECRET);
-
+import * as Sentry from "@sentry/node";
 
 const app = express();
 
-
-// Middleware
 app.use(express.json());
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+app.use(clerkMiddleware()); // req.auth will be available in the request object
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
-app.use(clerkMiddleware()); // req.auth will be available
-
-app.use(cors({
-  origin: [ENV.CLIENT_URL, "http://localhost:5173"], // allow both local and deployed frontend
-  credentials: true
-}));
-
-
-// Removed Inngest endpoint (make sure this is reachable by Clerk webhooks)
-// app.use("/api/inngest", serve({ client: inngest, functions }));
-
-// Debug route
 app.get("/debug-sentry", (req, res) => {
-  throw new Error("My first sentry error");
+  throw new Error("My first Sentry error!");
 });
 
-// Health check
 app.get("/", (req, res) => {
-  res.send("Hello from FlowTalk backend 🚀");
+  res.send("Hello World! 123");
 });
 
-// Chat API (Clerk-protected)
-app.use("/api/chat", clerkMiddleware(), chatRoutes);
+app.use("/api/inngest", serve({ client: inngest, functions }));
+app.use("/api/chat", chatRoutes);
 
-// Sentry error handler
 Sentry.setupExpressErrorHandler(app);
 
-// Start server
 const startServer = async () => {
   try {
-    console.log("🔍 Connecting to MongoDB...");
     await connectDB();
-
     if (ENV.NODE_ENV !== "production") {
       app.listen(ENV.PORT, () => {
-        console.log(`✅ Server started on http://localhost:${ENV.PORT}`);
+        console.log("Server started on port:", ENV.PORT);
       });
     }
   } catch (error) {
-    console.error("❌ Error starting server:", error);
-    process.exit(1);
+    console.error("Error starting server:", error);
+    process.exit(1); // Exit the process with a failure code
   }
 };
 
