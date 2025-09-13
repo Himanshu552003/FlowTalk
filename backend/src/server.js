@@ -9,12 +9,26 @@ import chatRoutes from "./routes/chat.route.js";
 import * as Sentry from "@sentry/node";
 import cors from "cors";
 
+import { StreamChat } from "stream-chat";
+
+
+Sentry.init({ dsn: ENV.SENTRY_DSN });
+// const streamClient = StreamChat.getInstance(ENV.STREAM_API_KEY, ENV.STREAM_API_SECRET);
+
+
 const app = express();
 
 // Middleware
 app.use(express.json());
+
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(clerkMiddleware()); // req.auth will be available
+
+app.use(cors({
+  origin: [ENV.CLIENT_URL, "http://localhost:5173"], // allow both local and deployed frontend
+  credentials: true
+}));
+
 
 // Inngest endpoint (only once, correct form)
 app.use("/api/inngest", serve(inngest, functions));
